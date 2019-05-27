@@ -8,54 +8,126 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace AssaultCubeHack.Properties {
-    
-    
+namespace AssaultCubeHack.Properties
+{
+
+
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "14.0.0.0")]
-    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
-        
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.8.0.0")]
+    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase
+    {
+
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
-        
-        public static Settings Default {
-            get {
+
+        public static Settings Default
+        {
+            get
+            {
                 return defaultInstance;
             }
         }
-        
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Capital")]
-        public global::System.Windows.Forms.Keys AimKey {
-            get {
+        public global::System.Windows.Forms.Keys AimKey
+        {
+            get
+            {
                 return ((global::System.Windows.Forms.Keys)(this["AimKey"]));
             }
-            set {
+            set
+            {
                 this["AimKey"] = value;
             }
         }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
+
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Red")]
-        public global::System.Drawing.Color EnemyColor {
-            get {
-                return ((global::System.Drawing.Color)(this["EnemyColor"]));
-            }
-            set {
-                this["EnemyColor"] = value;
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowNick
+        {
+            get
+            {
+                return ((bool)(this["ShowNick"]));
             }
         }
-        
+
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowHealth
+        {
+            get
+            {
+                return ((bool)(this["ShowHealth"]));
+            }
+        }
+
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ActivateHotkeys
+        {
+            get
+            {
+                return ((bool)(this["ActivateHotkeys"]));
+            }
+        }
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Green")]
-        public global::System.Drawing.Color TeamColor {
-            get {
-                return ((global::System.Drawing.Color)(this["TeamColor"]));
+        [global::System.Configuration.DefaultSettingValueAttribute("F11")]
+        public global::System.Windows.Forms.Keys HotKeyShowNick
+        {
+            get
+            {
+                return ((global::System.Windows.Forms.Keys)(this["HotKeyShowNick"]));
             }
-            set {
-                this["TeamColor"] = value;
+            set
+            {
+                this["HotKeyShowNick"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("F12")]
+        public global::System.Windows.Forms.Keys HotKeyShowHealth
+        {
+            get
+            {
+                return ((global::System.Windows.Forms.Keys)(this["HotKeyShowHealth"]));
+            }
+            set
+            {
+                this["HotKeyShowHealth"] = value;
+            }
+        }
+
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowHealthAsString
+        {
+            get
+            {
+                return ((bool)(this["ShowHealthAsString"]));
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("F10")]
+        public global::System.Windows.Forms.Keys HotKeyHealthAsString
+        {
+            get
+            {
+                return ((global::System.Windows.Forms.Keys)(this["HotKeyHealthAsString"]));
+            }
+            set
+            {
+                this["HotKeyHealthAsString"] = value;
             }
         }
     }
