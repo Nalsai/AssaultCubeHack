@@ -14,13 +14,15 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Utilities;
 
-namespace AssaultCubeHack {
-    public partial class AssaultHack : Form {
+namespace AssaultCubeHack
+{
+    public partial class AssaultHack : Form
+    {
 
         //target process
         private const string processName = "ac_client";
         private Process process;
-          
+
 
         //threads for updating rendering
         private Thread overlayThread;
@@ -45,25 +47,38 @@ namespace AssaultCubeHack {
         //can't use SolidBrush with alpha due to window transperency key / flag destroying alpha?
         //(alpha of 127 and below = translucent, 128 and above = opaque)
         //so we use HatchBrush to kinda fake alpha by allowing the background(game) to come through the holes in the hatches
-        private Brush hatchBrush = new HatchBrush(HatchStyle.Percent70, Color.FromArgb(128,15,15,15));
+        private Brush hatchBrush = new HatchBrush(HatchStyle.Percent70, Color.FromArgb(128, 15, 15, 15));
 
 
         //keyboard commands
         private GlobalKeyboardHook gkh = new GlobalKeyboardHook();
         private bool aim = false;
 
-        public AssaultHack() {
+
+        // runtime Settings
+        private bool _showNames;
+        private bool _showHealth;
+        private bool _showNamesAsString;
+
+        public AssaultHack()
+        {
+            _showNames = Settings.Default.ShowNick;
+            _showHealth = Settings.Default.ShowHealth;
+            _showNamesAsString = Settings.Default.ShowHealthAsString;
             InitializeComponent();
 
             //Get permission for working with UnmanagedCode
             //msdn.microsoft.com/en-us/library/xc5yzfbx(v=vs.110)
             //msdn.microsoft.com/en-us/library/ff648663.aspx#c08618429_020
-            try {
+            try
+            {
                 SecurityPermission sp = new SecurityPermission(SecurityPermissionFlag.UnmanagedCode);
                 sp.Demand();
-            } catch (Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 Console.WriteLine("Demand for SecurityPermissionFlag.UnmanagedCode failed: " + ex.Message);
-            }     
+            }
         }
 
         /// <summary>
@@ -76,8 +91,10 @@ namespace AssaultCubeHack {
         /// msdn.microsoft.com/en-us/library/windows/desktop/ff700543%28v=vs.85%29.aspx
         /// msdn.microsoft.com/en-us/library/aa251511(v=vs.60).aspx
         /// </summary>
-        protected override CreateParams CreateParams {
-            get {               
+        protected override CreateParams CreateParams
+        {
+            get
+            {
                 CreateParams CP = base.CreateParams;
                 int WS_EX_TRANSPARENT = 0x00000020;
                 CP.ExStyle = CP.ExStyle | WS_EX_TRANSPARENT;
@@ -85,14 +102,16 @@ namespace AssaultCubeHack {
             }
         }
 
-        private void AssaultHack_Load(object sender, EventArgs e) {
+        private void AssaultHack_Load(object sender, EventArgs e)
+        {
             Visible = false;
 
             //try to attach to game
-            AttachToGameProcess();           
+            AttachToGameProcess();
         }
 
-        private void InitializeOverlayWindowAttributes() {
+        private void InitializeOverlayWindowAttributes()
+        {
             //set up window and overlay properties for drawing on top of another window
             Visible = true;
             picBoxOverlay.Visible = true;
@@ -111,51 +130,67 @@ namespace AssaultCubeHack {
             bufferedGraphics = buffContext.Allocate(picBoxOverlay.CreateGraphics(), ClientRectangle);
             bufferedGraphics.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             bufferedGraphics.Graphics.CompositingQuality = CompositingQuality.HighQuality;
-               
+
         }
 
         /// <summary>
         /// Try to attach to game.
         /// </summary>
-        private void AttachToGameProcess() {
+        private void AttachToGameProcess()
+        {
             Visible = false;
             int count = 0;
             bool success = false;
-            do {
+            do
+            {
                 //check if game is running
-                if (Memory.GetProcessesByName(processName, out process)) {
+                if (Memory.GetProcessesByName(processName, out process))
+                {
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.Clear();
                     Console.WriteLine("Process found: " + process.Id + ": " + process.ProcessName);
                     Console.WriteLine("Attaching...");
 
                     //try to attach to game process
-                    try {
+                    try
+                    {
                         //success  
                         IntPtr handle = Memory.OpenProcess(process.Id);
-                        if (handle != IntPtr.Zero) {
+                        if (handle != IntPtr.Zero)
+                        {
                             success = true;
                             Console.ForegroundColor = ConsoleColor.Green;
                             Console.WriteLine("Attached Handle: " + handle);
-                        } else {
+                        }
+                        else
+                        {
                             Console.ForegroundColor = ConsoleColor.Red;
                             Console.WriteLine("Could not attach");
                         }
-                    } catch (Exception ex) {
+                    }
+                    catch (Exception ex)
+                    {
                         //fail
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.WriteLine("Attach failed: " + ex.Message);
                         Console.ReadKey(true);
                     }
-                } else {
+                }
+                else
+                {
                     //process not found
                     Console.ForegroundColor = ConsoleColor.Yellow;
-                    if (count++ == 0) {
+                    if (count++ == 0)
+                    {
                         Console.Clear();
                         Console.Write($"Waiting for {processName}");
-                    } else if (count < 10) {
+                    }
+                    else if (count < 10)
+                    {
                         Console.Write(".");
-                    } else {
+                    }
+                    else
+                    {
                         count = 0;
                     }
                     Thread.Sleep(1000);
@@ -166,7 +201,8 @@ namespace AssaultCubeHack {
             StartThreads();
         }
 
-        private void StartThreads() {
+        private void StartThreads()
+        {
             //start thread flag
             isRunning = true;
 
@@ -182,6 +218,12 @@ namespace AssaultCubeHack {
 
 
             //set up low level keyboard hooking to recieve key events while not in focus
+            if (Settings.Default.ActivateHotkeys)
+            {
+                gkh.HookedKeys.Add(Settings.Default.HotKeyHealthAsString);
+                gkh.HookedKeys.Add(Settings.Default.HotKeyShowHealth);
+                gkh.HookedKeys.Add(Settings.Default.HotKeyShowNick);
+            }
             gkh.HookedKeys.Add(Settings.Default.AimKey);
             gkh.KeyDown += new KeyEventHandler(KeyDownEvent);
             gkh.KeyUp += new KeyEventHandler(KeyUpEvent);
@@ -192,10 +234,13 @@ namespace AssaultCubeHack {
         /// Checks to make sure process is still running.
         /// </summary>
         /// <param name="handle">Handle of overlay form</param>
-        private void UpdateWindow(object handle) {
+        private void UpdateWindow(object handle)
+        {
             //update flag, make sure game is still running
-            while (isRunning) {
-                if (!Memory.IsProcessRunning(process)) {
+            while (isRunning)
+            {
+                if (!Memory.IsProcessRunning(process))
+                {
                     isRunning = false;
                     continue;
                 }
@@ -216,7 +261,8 @@ namespace AssaultCubeHack {
         /// Set window position and size to overlay target process.
         /// </summary>
         /// <param name="overlayHandle">Handle of overlay form(this form/self)</param>
-        private void SetOverlayPosition(IntPtr overlayHandle) {
+        private void SetOverlayPosition(IntPtr overlayHandle)
+        {
 
             //get window handle
             IntPtr gameProcessHandle = process.MainWindowHandle;
@@ -236,7 +282,8 @@ namespace AssaultCubeHack {
 
             //check if window has borders
             int dwStyle = NativeMethods.GetWindowLong(gameProcessHandle, NativeMethods.GWL_STYLE);
-            if ((dwStyle & NativeMethods.WS_BORDER) != 0) {
+            if ((dwStyle & NativeMethods.WS_BORDER) != 0)
+            {
                 //calculate inner window size without borders      
                 int bWidth = targetWindowPosition.Right - targetWindowPosition.Left;
                 int bHeight = targetWindowPosition.Bottom - targetWindowPosition.Top;
@@ -257,7 +304,7 @@ namespace AssaultCubeHack {
 
             //use hWndInsertAfter force AssualtCube behind overlay
             NativeMethods.SetWindowPos(gameProcessHandle, overlayHandle, 0, 0, 0, 0, NativeMethods.SWP_NOMOVE | NativeMethods.SWP_NOSIZE);
-            
+
 
             //save window size for ESP WorldToScreen translation
             gameWidth = width;
@@ -267,21 +314,36 @@ namespace AssaultCubeHack {
         /// <summary>
         /// Key event when a hooked key is pressed.
         /// </summary>
-        private void KeyDownEvent(object sender, KeyEventArgs e) {
+        private void KeyDownEvent(object sender, KeyEventArgs e)
+        {
             aim = (e.KeyCode == Settings.Default.AimKey);
 
-            e.Handled = true;
+            e.Handled = true;//prevent other programs from processing key
         }
 
         /// <summary>
         /// Key event when a hooked key is released.
         /// </summary>
-        private void KeyUpEvent(object sender, KeyEventArgs e) {
-            if (e.KeyCode == Settings.Default.AimKey) {
+        private void KeyUpEvent(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Settings.Default.AimKey)
+            {
                 aim = false;
             }
+            else if (e.KeyCode == Settings.Default.HotKeyShowNick)
+            {
+                _showNames = !_showNames;
+            }
+            else if (e.KeyCode == Settings.Default.HotKeyShowHealth)
+            {
+                _showHealth = !_showHealth;
+            }
+            else if (e.KeyCode == Settings.Default.HotKeyHealthAsString)
+            {
+                _showNamesAsString = !_showNamesAsString;
+            }
 
-            e.Handled = true;
+            e.Handled = true;//prevent other programs from processing key
         }
 
 
@@ -289,10 +351,12 @@ namespace AssaultCubeHack {
         /// Main update thread. 
         /// Read and write game memory, draw on screen.
         /// </summary>
-        public void UpdateHack() {
+        public void UpdateHack()
+        {
 
             //update loop
-            while (isRunning) {
+            while (isRunning)
+            {
 
                 //read
                 ReadGameMemory();
@@ -332,7 +396,8 @@ namespace AssaultCubeHack {
         /// <summary>
         /// Aim at closest enemy.
         /// </summary>
-        private void UpdateAimbot() {
+        private void UpdateAimbot()
+        {
             //if not aiming or no players, escape
             if (!aim || players.Count == 0) return;
 
@@ -360,14 +425,16 @@ namespace AssaultCubeHack {
         /// <summary>
         /// Get enemy nearest to player.
         /// </summary>
-        private Player GetClosestEnemy() {
+        private Player GetClosestEnemy()
+        {
             //find first living enemy player
             Player target = players.Find(p => p.Team != self.Team && p.Health > 0);
             if (target == null) return null;
 
             //if a closer enemy is found, set them as target
-            foreach (Player player in players) {
-                if (player.Team != self.Team && player.Health > 0 
+            foreach (Player player in players)
+            {
+                if (player.Team != self.Team && player.Health > 0
                     && player.PositionFoot.Distance(self.PositionFoot) < target.PositionFoot.Distance(self.PositionFoot))
                     target = player;
             }
@@ -378,10 +445,11 @@ namespace AssaultCubeHack {
         /// <summary>
         /// Get enemy nearest to crosshair.
         /// </summary>
-        private Player GetClosestEnemyToCrossHair() {
+        private Player GetClosestEnemyToCrossHair()
+        {
             //find first living enemy player in view
             Vector2 targetPos = new Vector2();
-            Player target = players.Find(p => p.Team != self.Team && p.Health > 0 
+            Player target = players.Find(p => p.Team != self.Team && p.Health > 0
                 && viewMatrix.WorldToScreen(p.PositionHead, gameWidth, gameHeight, out targetPos));
             if (target == null) return null;
 
@@ -390,12 +458,16 @@ namespace AssaultCubeHack {
             float dist = crossHair.Distance(targetPos);
 
             //find player closest to crosshair
-            foreach (Player p in players) {
-                if (p.Team != self.Team && p.Health > 0) {
+            foreach (Player p in players)
+            {
+                if (p.Team != self.Team && p.Health > 0)
+                {
                     Vector2 headPos;
-                    if (viewMatrix.WorldToScreen(p.PositionHead, gameWidth, gameHeight, out headPos)) {
+                    if (viewMatrix.WorldToScreen(p.PositionHead, gameWidth, gameHeight, out headPos))
+                    {
                         float newDist = crossHair.Distance(headPos);
-                        if (newDist < dist) {
+                        if (newDist < dist)
+                        {
                             target = p;
                             dist = newDist;
                         }
@@ -409,18 +481,20 @@ namespace AssaultCubeHack {
         /// <summary>
         /// Read the memory of the game and save data into objects.
         /// </summary>
-        private void ReadGameMemory() {
+        private void ReadGameMemory()
+        {
             if (!isRunning) return;
 
             //read self
             int ptrPlayerSelf = Memory.Read<int>(Offsets.baseGame + Offsets.ptrPlayerEntity);
             self = new Player(ptrPlayerSelf);
-            
+
             //read players
             players.Clear();
             numPlayers = Memory.Read<int>(Offsets.baseGame + Offsets.numPlayers);
             int ptrPlayerArray = Memory.Read<int>(Offsets.baseGame + Offsets.ptrPlayerArray);
-            for (int i = 0; i < numPlayers; i++) {
+            for (int i = 0; i < numPlayers; i++)
+            {
                 //each pointer is 4 bytes apart in the array
                 //pointer to player = pointer to array + index of player * byte size
                 int ptrPlayer = Memory.Read<int>(ptrPlayerArray + (i * 0x04));
@@ -432,44 +506,62 @@ namespace AssaultCubeHack {
         }
 
 
-        private void Draw(Graphics g) {
+        private void Draw(Graphics g)
+        {
             //clear
             ClearScreen(g);
- 
+
             //show player count
             g.DrawString("Players: " + numPlayers, font, new SolidBrush(Color.Wheat), ClientSize.Width / 2, 10);
 
             //debug show view matrix
             //g.DrawString(viewMatrix.ToString(), font, Brushes.White, new Point(300, 30));
             //g.DrawString(gameWidth + "," + gameHeight, font, Brushes.White, new Point());
-            
+
             //g.FillRectangle(new SolidBrush(Color.FromArgb(128, 255, 0, 0)), 30, 30, 300, 300);
-            
+
             //draw esp(wall hack)
-            foreach (Player p in players) {
+            foreach (Player p in players)
+            {
                 if (p.Health <= 0) continue;
 
                 int offset = 20;
-                Pen color = p.Team == self.Team ? new Pen(Settings.Default.TeamColor) : new Pen(Settings.Default.EnemyColor);
+                Pen color = p.Team == self.Team ? Pens.Green : Pens.Red;
                 Vector2 headPos, footPos;
-                if(viewMatrix.WorldToScreen(p.PositionHead, gameWidth, gameHeight, out headPos) &&
-                    viewMatrix.WorldToScreen(p.PositionFoot, gameWidth, gameHeight, out footPos)) {
+                if (viewMatrix.WorldToScreen(p.PositionHead, gameWidth, gameHeight, out headPos) &&
+                    viewMatrix.WorldToScreen(p.PositionFoot, gameWidth, gameHeight, out footPos))
+                {
                     float height = Math.Abs(headPos.y - footPos.y);
                     float width = height / 2;
-                    g.DrawRectangle(color, headPos.x-width/2, headPos.y-offset, width, height+offset);
+                    g.DrawRectangle(color, headPos.x - width / 2, headPos.y - offset, width, height + offset);
+                    if (_showNames)
+                    {
+                        g.DrawString(p.Name, font, new SolidBrush(Color.Wheat), headPos.x - width / 2, headPos.y - offset);
+                        if (_showHealth)
+                        {
+                            g.DrawString(_showNamesAsString ? p.Health.ToString() : healthBars(p.Health), font, (p.Health == 100 ? new SolidBrush(Color.Green) : (p.Health >= 50 ? new SolidBrush(Color.Yellow) : new SolidBrush(Color.Red))), headPos.x - width / 2, (headPos.y - offset) + font.Height);
+                        }
+                    }
+                    else if (_showHealth)
+                    {
+                        g.DrawString(_showNamesAsString ? p.Health.ToString() : healthBars(p.Health), font, (p.Health == 100 ? new SolidBrush(Color.Green) : (p.Health >= 50 ? new SolidBrush(Color.Yellow) : new SolidBrush(Color.Red))), headPos.x - width / 2, headPos.y - offset);
+                    }
                 }
-                    
+
             }
 
             bool drawPlayerList = false;
-            if (drawPlayerList) {
+            if (drawPlayerList)
+            {
                 //test draw player list
-                if (players.Count > 0) {
+                if (players.Count > 0)
+                {
                     int spacing = (int)font.Size + 1;
                     int s = 0;
                     //add background to make text more visible
                     g.FillRectangle(hatchBrush, 20, 20, 180, (spacing * players.Count) + (spacing / 2));
-                    foreach (Player p in players) {
+                    foreach (Player p in players)
+                    {
 
                         Point pos = new Point(20, 20 + (s * spacing));
                         Brush color = p.Team == self.Team ? Brushes.Green : Brushes.Red;
@@ -486,7 +578,19 @@ namespace AssaultCubeHack {
             bufferedGraphics.Render();
         }
 
-        private static void DrawStringOutlined(Graphics g, string text, Point pos, Font font, Brush colorText, Pen colorOutline) {
+        private string healthBars(int health)
+        {
+            int result = (health / 10);
+            string bars = result > 0 ? "" : "|";
+            for (int i = 0; i < result; i++)
+            {
+                bars += "|";
+            }
+            return bars;
+        }
+
+        private static void DrawStringOutlined(Graphics g, string text, Point pos, Font font, Brush colorText, Pen colorOutline)
+        {
             GraphicsPath path = new GraphicsPath();
             path.AddString(text,
                 font.FontFamily, (int)font.Style,
@@ -496,12 +600,14 @@ namespace AssaultCubeHack {
             g.FillPath(colorText, path);
         }
 
-        private void ClearScreen(Graphics g) {
+        private void ClearScreen(Graphics g)
+        {
             //fill screen with chosen transparent color (tranparency key)
             g.FillRectangle(new SolidBrush(colorTransparencyKey), ClientRectangle);
         }
 
-        private void AssaultHack_FormClosing(object sender, FormClosingEventArgs e) {
+        private void AssaultHack_FormClosing(object sender, FormClosingEventArgs e)
+        {
             //kill threads
             isRunning = false;
 

@@ -6,17 +6,20 @@ using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using Utilities;
 
-namespace AssaultCubeHack {
+namespace AssaultCubeHack
+{
 
-    class Program {
+    class Program
+    {
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main(string[] args) {
+        static void Main(string[] args)
+        {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new AssaultHack());       
+            Application.Run(new AssaultHack());
         }
-    }   
+    }
 }

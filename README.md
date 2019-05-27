@@ -11,3 +11,7 @@ Aimbot to snap crosshair onto enemy for perfect aim. (Default aimlock is Capsloc
 
 ### Legal:
 This project contians no Assault Cube intellectual property, and is not affiliated in any way. The original game is required and can be retrieved from: https://assault.cubers.net/
+
+### Credits:
+- https://github.com/0XDE57/AssaultCubeHack
+- https://github.com/unnamed1337/AssaultCubeHack

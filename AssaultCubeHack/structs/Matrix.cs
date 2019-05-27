@@ -4,8 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AssaultCubeHack {
-    class Matrix {
+namespace AssaultCubeHack
+{
+    class Matrix
+    {
         //Memory layout of data will affect order of matrix. 
         //DirectX: Usualy Row-Major
         //OpenGL: Usualy Column-Major
@@ -25,7 +27,8 @@ namespace AssaultCubeHack {
         /// <param name="height">screen height</param>
         /// <param name="screenPos">object's 2D position on screen</param>
         /// <returns>true if object is visible, false otherwise</returns>
-        public bool WorldToScreen(Vector3 worldPos, int width, int height, out Vector2 screenPos) {
+        public bool WorldToScreen(Vector3 worldPos, int width, int height, out Vector2 screenPos)
+        {
 
             //multiply vector against matrix
             float screenX = (m11 * worldPos.x) + (m21 * worldPos.y) + (m31 * worldPos.z) + m41;
@@ -47,7 +50,8 @@ namespace AssaultCubeHack {
         }
 
 
-        public override string ToString() {
+        public override string ToString()
+        {
             //display matrix cleanly in a grid
             return String.Format(
                 "{0,8}{1,8}{2,8}{3,8}\n" +

@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 
-namespace AssaultCubeHack {
+namespace AssaultCubeHack
+{
 
-    class Memory {
+    class Memory
+    {
         //handle of process we are attached to
         private static IntPtr handle = IntPtr.Zero;
 
@@ -17,31 +19,37 @@ namespace AssaultCubeHack {
         /// </summary>
         /// <param name="pId">process ID</param>
         /// <returns>handle</returns>
-        public static IntPtr OpenProcess(int pId) {
+        public static IntPtr OpenProcess(int pId)
+        {
             handle = NativeMethods.OpenProcess(NativeMethods.PROCESS_VM_READ | NativeMethods.PROCESS_VM_WRITE | NativeMethods.PROCESS_VM_OPERATION, false, pId);
             return handle;
         }
 
-        public static IntPtr GetHandle() {
+        public static IntPtr GetHandle()
+        {
             return handle;
         }
 
         /// <summary>
         /// Release / invalidate handle.
         /// </summary>
-        public static void CloseProcess() {
+        public static void CloseProcess()
+        {
             NativeMethods.CloseHandle(handle);
         }
 
 
-        public static bool GetProcessesByName(string pName, out Process process) {
+        public static bool GetProcessesByName(string pName, out Process process)
+        {
             Process[] pList = Process.GetProcessesByName(pName);
             process = pList.Length > 0 ? pList[0] : null;
             return process != null;
         }
 
-        public static bool IsProcessRunning(Process process) {
-            foreach (Process p in Process.GetProcesses()) {
+        public static bool IsProcessRunning(Process process)
+        {
+            foreach (Process p in Process.GetProcesses())
+            {
                 if (p.ProcessName == process.ProcessName)
                     return true;
             }
@@ -55,7 +63,8 @@ namespace AssaultCubeHack {
         /// Write genertic type into memory at address.
         /// </summary>
         /// <returns>write succeeded</returns>
-        public static bool Write<T>(long address, T t) {
+        public static bool Write<T>(long address, T t)
+        {
             //create byte array with size of type
             byte[] buffer = new byte[Marshal.SizeOf(typeof(T))];
 
@@ -77,7 +86,8 @@ namespace AssaultCubeHack {
         /// <summary>
         /// Reads memory of generic type at address.
         /// </summary>
-        public static T Read<T>(long address) {
+        public static T Read<T>(long address)
+        {
             //create byte array with size of type
             byte[] buffer = new byte[Marshal.SizeOf(typeof(T))];
 
@@ -86,7 +96,7 @@ namespace AssaultCubeHack {
             NativeMethods.ReadProcessMemory(handle, address, buffer, (uint)buffer.Length, out bytesRead);
 
             //allocate handle for buffer
-            GCHandle gHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);//TODO: this line is crashing in Release but not Debug compile. why? AccessViolationException
+            GCHandle gHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
             //arrange data from unmanaged block of memory to structure of type T
             T data = (T)Marshal.PtrToStructure(gHandle.AddrOfPinnedObject(), typeof(T));
             gHandle.Free(); //release handle
@@ -94,7 +104,8 @@ namespace AssaultCubeHack {
             return data;
         }
 
-        public static string ReadString(long baseAddress, ulong size) {
+        public static string ReadString(long baseAddress, UInt64 size)
+        {
             //create buffer for string
             byte[] buffer = new byte[size];
 
@@ -103,8 +114,10 @@ namespace AssaultCubeHack {
             NativeMethods.ReadProcessMemory(handle, baseAddress, buffer, size, out bytesRead);
 
             //encode bytes to ascii
-            for (int i = 0; i < buffer.Length; i++) {
-                if (buffer[i] == 0) {
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                if (buffer[i] == 0)
+                {
                     byte[] tmpBuffer = new byte[i];
                     Buffer.BlockCopy(buffer, 0, tmpBuffer, 0, i);
                     return Encoding.ASCII.GetString(tmpBuffer);
@@ -113,7 +126,8 @@ namespace AssaultCubeHack {
             return Encoding.ASCII.GetString(buffer);
         }
 
-        public static string ReadString2(long baseAddress, ulong size) {
+        public static string ReadString2(long baseAddress, UInt64 size)
+        {
             //create buffer for string
             byte[] buffer = new byte[size];
 
@@ -128,9 +142,10 @@ namespace AssaultCubeHack {
         /// <summary>
         /// Read 3 consecutive floats into x,y,z of a Vector
         /// </summary>
-        public static Vector3 ReadVector3(long baseAddress) {
+        public static Vector3 ReadVector3(long baseAddress)
+        {
             //3 floats contiguously in memory
-            byte[] buffer = new byte[3*4];
+            byte[] buffer = new byte[3 * 4];
 
             //read memory into buffer
             IntPtr bytesRead;
@@ -147,7 +162,8 @@ namespace AssaultCubeHack {
         /// <summary>
         /// Write 3 floats in vector(x,y,z) consecutively into memory at address
         /// </summary>
-        public static void WriteVector3(long baseAddress, Vector3 vec) {
+        public static void WriteVector3(long baseAddress, Vector3 vec)
+        {
             Write(baseAddress + 0, vec.x); //x
             Write(baseAddress + 4, vec.y); //y
             Write(baseAddress + 8, vec.z); //z
@@ -156,9 +172,10 @@ namespace AssaultCubeHack {
         /// <summary>
         /// Reads 16 consecutive floats into a Matrix
         /// </summary>
-        public static Matrix ReadMatrix(long baseAddress) {
+        public static Matrix ReadMatrix(long baseAddress)
+        {
             //float matrix[16]; 16-value array laid out contiguously in memory       
-            byte[] buffer = new byte[16*4];
+            byte[] buffer = new byte[16 * 4];
 
             //read memory into buffer
             IntPtr bytesRead;
@@ -186,9 +203,10 @@ namespace AssaultCubeHack {
             mat.m43 = BitConverter.ToSingle(buffer, (14 * 4));
             mat.m44 = BitConverter.ToSingle(buffer, (15 * 4));
             return mat;
-        }       
+        }
 
-        public static bool IsValid(long address) {
+        public static bool IsValid(long address)
+        {
             return (address >= 0x10000 && address < 0x000F000000000000);
         }
         #endregion

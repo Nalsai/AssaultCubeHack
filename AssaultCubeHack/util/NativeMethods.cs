@@ -5,17 +5,20 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AssaultCubeHack {
+namespace AssaultCubeHack
+{
     /// <summary>
     /// PInvoke (Platform Invoke) Signatures for calls to external Win32 and other unmanaged APIs from managed code.
     /// http://www.pinvoke.net
     /// http://winapi.freetechsecrets.com/
     /// </summary>
-    abstract class NativeMethods {
+    abstract class NativeMethods
+    {
 
         #region window structures
         [StructLayout(LayoutKind.Sequential)]
-        public struct RECT {
+        public struct RECT
+        {
             public int Left;   // x position of upper-left corner
             public int Top;    // y position of upper-left corner
             public int Right;  // x position of lower-right corner
@@ -45,9 +48,10 @@ namespace AssaultCubeHack {
         #endregion
 
         #region user32.dll
-        
-        
-        public enum SetWindowsHookCodes : int {
+
+
+        public enum SetWindowsHookCodes : int
+        {
             WH_JOURNALRECORD = 0,
             WH_JOURNALPLAYBACK = 1,
             WH_KEYBOARD = 2,
@@ -67,7 +71,7 @@ namespace AssaultCubeHack {
 
         public delegate IntPtr HookProc(int code, IntPtr wParam, IntPtr lParam);
 
-		[DllImport("user32.dll")]
+        [DllImport("user32.dll")]
         public static extern IntPtr SetWindowsHookEx(int idHook, HookProc lpfn, IntPtr hMod, uint dwThreadId);
 
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
@@ -116,10 +120,10 @@ namespace AssaultCubeHack {
         public static extern bool CloseHandle(IntPtr handle);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool ReadProcessMemory(IntPtr hProcess, long lpBaseAddress, [In, Out] byte[] lpBuffer, ulong dwSize, out IntPtr lpNumberOfBytesRead);
+        public static extern bool ReadProcessMemory(IntPtr hProcess, long lpBaseAddress, [In, Out] byte[] lpBuffer, UInt64 dwSize, out IntPtr lpNumberOfBytesRead);
 
         [DllImport("kernel32.dll")]
-        public static extern bool WriteProcessMemory(IntPtr hProcess, long lpBaseAddress, [In, Out] byte[] lpBuffer, ulong dwSize, out IntPtr lpNumberOfBytesWritten);
+        public static extern bool WriteProcessMemory(IntPtr hProcess, long lpBaseAddress, [In, Out] byte[] lpBuffer, UInt64 dwSize, out IntPtr lpNumberOfBytesWritten);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool VirtualProtectEx(IntPtr hProcess, IntPtr lpAddress, UInt32 dwSize, uint flNewProtect, out uint lpflOldProtect);
